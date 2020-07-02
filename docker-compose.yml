@@ -1,0 +1,72 @@
+version: '3.3'
+services:
+  lnmp-nginx:
+    build: ./dockerfile/nginx-1.9-ap
+    ports:
+    - "8080:8080"
+    - "80:80"
+    - "9650:9501"
+    #    restart: always
+    #    tty: true
+    container_name: lnmp-nginx
+    volumes: # 新增这两行
+    - ./data/www:/var/www/html
+    - ./config/nginx/conf.d/:/etc/nginx/conf.d/
+    - ./config/nginx/nginx.conf:/etc/nginx/nginx.conf
+    - ./logs/nginx:/var/log/nginx
+  lnpm-php7:
+    build: ./dockerfile/php-7.2-fpm
+    #    tty: true
+    #    restart: always
+    container_name: lnpm-php7
+    ports:
+    - "9503:9503"
+    volumes:
+    - ./data/www:/var/www/html
+    - ./logs/php:/var/log/php
+    - ./config/php/conf.d/docker-php-ext-swoole.ini:/usr/local/etc/php/conf.d/docker-php-ext-swoole.ini #设置swoole扩展设置
+    - ./config/php/php.ini:/usr/local/etc/php/php.ini
+  lnpm-redis:
+    build: ./dockerfile/redis-6.0.5
+    container_name: lnpm-redis
+    ports:
+    - "63790:6379"
+    volumes:
+    - ./config/redis/redis.conf:/etc/redis/redis.conf
+    - ./data/redis/:/data/
+    - ./logs/redis/:/var/log/redis
+  #    command: ["sh", "-c", "echo never >/sys/kernel/mm/transparent_hugepage/enabled"]
+  lnpm-mysql:
+    build: ./dockerfile/mysql-8.0.18
+    container_name: lnpm-mysql
+    ports:
+    - "33060:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    volumes:
+    - ./logs/mysql:/var/log/mysql
+    - ./config/mysql/my.cnf:/etc/mysql/my.cnf    #配置文件/etc/mysql/conf.d
+    - ./data/mysql/:/var/lib/mysql/
+
+  lnpm-rabbitmq:
+    build: ./dockerfile/rabbitmq-3.8.5-mgt-ap
+    container_name: lnpm-rabbitmq
+    ports:
+    - "15672:15672"
+    - "5672:5672"
+    environment:
+      #        RABBITMQ_DEFAULT_VHOST: "XXX"
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: 123456
+      RABBITMQ_LOGS: /var/log/rabbitmq/rabbitmqactive.log
+    #      RABBITMQ_SASL_LOGS: /var/log/rabbitmq/rabbitmq-sasl.log
+    volumes:
+    #    - ./config/rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
+    - ./logs/rabbitmq:/var/log/rabbitmq
+    - ./data/rabbitmq:/var/lib/rabbitmq
+
+
+
+
+
+
